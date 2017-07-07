@@ -39,8 +39,7 @@ module Selenium
           expect(driver.manage.logs.available_types).to include(:browser, :har)
         end
 
-        # All other browsers show empty
-        it 'can get the browser log', only: {browser: %i[firefox ff_esr ff_nightly]} do
+        it 'can get the browser log', only: {browser: %i[chrome firefox ff_esr ff_nightly]} do
           driver.navigate.to url_for('simpleTest.html')
 
           entries = driver.manage.logs.get(:browser)
