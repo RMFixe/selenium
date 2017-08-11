@@ -78,8 +78,7 @@ module Selenium
         expect(new_pos.y).to eq(target_y)
       end
 
-      # remote responds to OSS protocol which doesn't support rect commands
-      context 'window rect', except: {driver: :remote}, only: {browser: %i[firefox ff_nightly]} do
+      context 'window rect', only: {browser: %i[firefox ff_nightly]} do
         it 'gets the rect of the current window' do
           rect = driver.manage.window.rect
 

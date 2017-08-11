@@ -21,7 +21,7 @@ require_relative '../spec_helper'
 
 module Selenium
   module WebDriver
-    describe Element, only: {driver: :remote} do
+    describe Element, only: {driver: :remote, browser: %i[chrome ff_esr firefox ff_nightly]} do
       before do
         driver.file_detector = ->(_str) { __FILE__ }
       end
@@ -30,7 +30,7 @@ module Selenium
         driver.file_detector = nil
       end
 
-      it 'uses the file detector', only: {browser: %i[chrome ff_esr firefox ff_nightly]} do
+      it 'uses the file detector' do
         driver.navigate.to url_for('upload.html')
 
         driver.find_element(id: 'upload').send_keys('random string')
