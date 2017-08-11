@@ -25,7 +25,12 @@ module Selenium
       let(:window) { driver.manage.window }
       let!(:original_size) { window.size }
 
-      after { window.size = original_size }
+      after do
+        # Firefox 54 fails to set window size to the size that is already set
+        # @todo Remove `+ 1` hack once Firefox 55 is shipped
+        # @see mozilla/geckodriver#791
+        window.size = Dimension.new(original_size.width + 1, original_size.height + 1)
+      end
 
       it 'gets the size of the current window' do
         size = window.size
@@ -74,7 +79,7 @@ module Selenium
       end
 
       # remote responds to OSS protocol which doesn't support rect commands
-      context 'window rect', except: {driver: :remote}, only: {browser: :ff_nightly} do
+      context 'window rect', except: {driver: :remote}, only: {browser: %i[firefox ff_nightly]} do
         it 'gets the rect of the current window' do
           rect = driver.manage.window.rect
 
@@ -107,8 +112,7 @@ module Selenium
       end
 
       # TODO: - Create Window Manager guard
-      # Geckodriver issue: https://github.com/mozilla/geckodriver/issues/820
-      it 'can maximize the current window', except: [{platform: :linux}, {browser: %i[safari firefox]}] do
+      it 'can maximize the current window', except: [{platform: :linux}, {browser: :safari}] do
         window.size = old_size = Dimension.new(200, 200)
 
         window.maximize
