@@ -21,7 +21,7 @@ require_relative '../spec_helper'
 
 module Selenium
   module WebDriver
-    describe Element, only: {driver: :remote, browser: %i[chrome ff_esr firefox ff_nightly]} do
+    describe Element, only: {driver: :remote, browser: %i[chrome ff_esr firefox]} do
       before do
         driver.file_detector = ->(_str) { __FILE__ }
       end

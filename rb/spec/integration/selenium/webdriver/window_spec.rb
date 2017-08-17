@@ -78,7 +78,7 @@ module Selenium
         expect(new_pos.y).to eq(target_y)
       end
 
-      context 'window rect', only: {browser: %i[firefox ff_nightly]} do
+      context 'window rect', only: {browser: :firefox} do
         it 'gets the rect of the current window' do
           rect = driver.manage.window.rect
 
@@ -125,7 +125,7 @@ module Selenium
 
       # Firefox - https://bugzilla.mozilla.org/show_bug.cgi?id=1189749
       # Edge: Not Yet - https://dev.windows.com/en-us/microsoft-edge/platform/status/webdriver/details/
-      it 'can make window full screen', only: {browser: %i[firefox ff_nightly edge]}, except: {browser: %i[firefox ff_nightly edge]} do
+      it 'can make window full screen', except: {browser: %i[firefox edge]} do
         window.maximize
         old_size = window.size
 
@@ -137,7 +137,7 @@ module Selenium
 
       # Firefox - Not implemented yet, no bug to track
       # Edge: Not Yet - https://dev.windows.com/en-us/microsoft-edge/platform/status/webdriver/details/
-      it 'can minimize the window', only: {browser: %i[firefox ff_nightly edge]}, except: {browser: %i[firefox ff_nightly edge]} do
+      it 'can minimize the window', except: {browser: %i[firefox edge]} do
         driver.execute_script('window.minimized = false; window.onblur = function(){ window.minimized = true };')
         window.minimize
         expect(driver.execute_script('return window.minimized;')).to be true

@@ -292,7 +292,7 @@ module Selenium
 
         # Safari - Raises wrong error
         # Firefox - https://bugzilla.mozilla.org/show_bug.cgi?id=1279211
-        context 'unhandled alert error', except: {browser: %i[firefox safari ff_nightly]} do
+        context 'unhandled alert error', except: {browser: %i[firefox safari]} do
           it 'raises an UnhandledAlertError if an alert has not been dealt with', except: {browser: %i[ie ff_esr]}  do
             driver.navigate.to url_for('alerts.html')
             driver.find_element(id: 'alert').click
