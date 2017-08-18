@@ -72,7 +72,7 @@ module Selenium
         end
 
         # IE - Command not implemented
-        it 'should get named cookie', except: [{driver: :ie}, {browser: :firefox}] do
+        it 'should get named cookie', except: {driver: :ie} do
           driver.navigate.to url_for('xhtmlTest.html')
           driver.manage.add_cookie name: 'foo', value: 'bar'
 
