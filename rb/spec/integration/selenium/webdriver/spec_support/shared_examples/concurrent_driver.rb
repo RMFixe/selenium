@@ -18,7 +18,7 @@
 # under the License.
 
 shared_examples_for 'driver that can be started concurrently' do
-  it 'is started sequentially', except: {browser: %i[edge safari]} do
+  it 'is started sequentially', except: [{browser: %i[edge safari]}, {driver: :remote}] do
     expect do
       # start 5 drivers concurrently
       threads = []
