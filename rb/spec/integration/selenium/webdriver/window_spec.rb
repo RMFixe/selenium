@@ -25,12 +25,7 @@ module Selenium
       let(:window) { driver.manage.window }
       let!(:original_size) { window.size }
 
-      after do
-        # Firefox 54 fails to set window size to the size that is already set
-        # @todo Remove `+ 1` hack once Firefox 55 is shipped
-        # @see mozilla/geckodriver#791
-        window.size = Dimension.new(original_size.width + 1, original_size.height + 1)
-      end
+      after { window.size = original_size }
 
       it 'gets the size of the current window' do
         size = window.size
