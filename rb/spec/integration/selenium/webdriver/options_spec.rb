@@ -39,7 +39,7 @@ module Selenium
           expect(driver.manage.logs.available_types).to include(:browser, :har)
         end
 
-        it 'can get the browser log', only: {browser: %i[chrome firefox ff_esr]} do
+        it 'can get the browser log', only: {browser: %i[firefox ff_esr]} do
           driver.navigate.to url_for('simpleTest.html')
 
           entries = driver.manage.logs.get(:browser)
