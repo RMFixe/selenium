@@ -61,7 +61,9 @@ module Selenium
       end
 
       # PhantomJS on windows issue: https://github.com/ariya/phantomjs/issues/10993
-      it 'should handle file uploads', except: {browser: %i[safari edge phantomjs]} do
+      # https://github.com/mozilla/geckodriver/issues/644
+      # https://github.com/mozilla/geckodriver/issues/858
+      it 'should handle file uploads', except: {browser: %i[firefox safari edge phantomjs]} do
         driver.navigate.to url_for('formPage.html')
 
         element = driver.find_element(id: 'upload')
