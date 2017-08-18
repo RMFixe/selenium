@@ -23,16 +23,13 @@ module Selenium
   module WebDriver
     module Firefox
       describe Driver, only: {browser: :ff_esr} do
-        describe '.new' do
-          it 'takes a Firefox::Profile instance as argument', except: {driver: :remote} do
-            profile = Selenium::WebDriver::Firefox::Profile.new
-            caps = Remote::Capabilities.firefox(marionette: false, profile: profile)
+        it 'takes a Firefox::Profile instance as argument', except: {driver: :remote} do
+          profile = Selenium::WebDriver::Firefox::Profile.new
 
-            create_driver!(desired_capabilities: caps) do |driver|
-              stored_profile = driver.instance_variable_get('@launcher')
-                                     .instance_variable_get('@profile')
-              expect(stored_profile).to be == profile
-            end
+          create_driver!(profile: profile) do |driver|
+            stored_profile = driver.instance_variable_get('@launcher')
+                                   .instance_variable_get('@profile')
+            expect(stored_profile).to be == profile
           end
         end
       end
