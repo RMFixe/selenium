@@ -154,7 +154,7 @@ module Selenium
           expect(string).to include('user_pref("network.proxy.type", 4)')
         end
 
-        describe 'with browser', except: {browser: :ff_esr} do
+        describe 'with browser', except: {driver: :ff_esr} do
           before(:each) do
             profile['browser.startup.homepage'] = url_for('simpleTest.html')
             profile['browser.startup.page'] = 1
