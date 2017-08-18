@@ -23,9 +23,8 @@ module Selenium
   module WebDriver
     describe Window do
       let(:window) { driver.manage.window }
-      let!(:original_size) { window.size }
 
-      after { window.size = original_size }
+      after { reset_driver! }
 
       it 'gets the size of the current window' do
         size = window.size
