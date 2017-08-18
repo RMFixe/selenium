@@ -40,7 +40,7 @@ module Selenium
         end
 
         # TODO (Alex): Investigate why this spec passes on macOS but fails on Linux.
-        fit 'can get the browser log', only: {browser: %i[firefox ff_esr]}, except: {browser: :chrome, platform: :linux} do
+        it 'can get the browser log', only: {browser: %i[firefox ff_esr]}, except: {browser: :chrome, platform: :linux} do
           driver.navigate.to url_for('simpleTest.html')
 
           entries = driver.manage.logs.get(:browser)
