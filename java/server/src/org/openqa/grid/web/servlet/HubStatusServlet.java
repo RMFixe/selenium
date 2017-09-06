@@ -15,31 +15,32 @@
 // specific language governing permissions and limitations
 // under the License.
 
-
 package org.openqa.grid.web.servlet;
-
-import com.google.common.io.CharStreams;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
-
-import org.openqa.grid.common.exception.GridException;
-import org.openqa.grid.internal.Registry;
-import org.openqa.grid.internal.RemoteProxy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.openqa.grid.common.exception.GridException;
+import org.openqa.grid.internal.Registry;
+import org.openqa.grid.internal.RemoteProxy;
+import org.openqa.grid.internal.TestSlot;
+import org.openqa.selenium.remote.CapabilityType;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * API to query the hub config remotely.
@@ -63,101 +64,157 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class HubStatusServlet extends RegistryBasedServlet {
 
-  public HubStatusServlet() {
-    super(null);
-  }
-
-  public HubStatusServlet(Registry registry) {
-    super(registry);
-  }
-
-  @Override
-  protected void doGet(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
-    process(request, response);
-  }
-
-
-
-  protected void process(HttpServletRequest request, HttpServletResponse response)
-      throws IOException {
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
-    response.setStatus(200);
-    JsonObject res;
-    try {
-      res = getResponse(request);
-      response.getWriter().print(res);
-      response.getWriter().close();
-    } catch (JsonSyntaxException e) {
-      throw new GridException(e.getMessage());
+    public HubStatusServlet() {
+        super(null);
     }
 
-  }
-
-  private JsonObject getResponse(HttpServletRequest request) throws IOException {
-    JsonObject res = new JsonObject();
-    res.addProperty("success", true);
-    try {
-      if (request.getInputStream() != null) {
-        JsonObject requestJSON = getRequestJSON(request);
-        List<String> keysToReturn = null;
-
-        if (request.getParameter("configuration") != null && !"".equals(request.getParameter("configuration"))) {
-          keysToReturn = Arrays.asList(request.getParameter("configuration").split(","));
-        } else if (requestJSON != null && requestJSON.has("configuration")) {
-          keysToReturn = new Gson().fromJson(requestJSON.getAsJsonArray("configuration"), ArrayList.class);
-        }
-
-        Registry registry = getRegistry();
-        JsonElement config = registry.getConfiguration().toJson();
-        for (Map.Entry<String, JsonElement> entry : config.getAsJsonObject().entrySet()) {
-          if (keysToReturn == null || keysToReturn.isEmpty() || keysToReturn.contains(entry.getKey())) {
-            res.add(entry.getKey(), entry.getValue());
-          }
-        }
-        if (keysToReturn == null || keysToReturn.isEmpty() || keysToReturn.contains("newSessionRequestCount")) {
-          res.addProperty("newSessionRequestCount", registry.getNewSessionRequestCount());
-        }
-
-        if (keysToReturn == null || keysToReturn.isEmpty() || keysToReturn.contains("slotCounts")) {
-          res.add("slotCounts", getSlotCounts());
-        }
-      }
-    } catch (Exception e) {
-      res.remove("success");
-      res.addProperty("success", false);
-      res.addProperty("msg", e.getMessage());
+    public HubStatusServlet(final Registry registry) {
+        super(registry);
     }
-    return res;
 
-  }
-
-  private JsonObject getSlotCounts() {
-    int totalSlots = 0;
-    int usedSlots = 0;
-
-    for (RemoteProxy proxy : getRegistry().getAllProxies()) {
-      totalSlots += Math.min(proxy.getMaxNumberOfConcurrentTestSessions(), proxy.getTestSlots().size());
-      usedSlots += proxy.getTotalUsed();
+    @Override
+    protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
+            throws ServletException, IOException {
+        process(request, response);
     }
-    JsonObject result = new JsonObject();
-    result.addProperty("free", totalSlots - usedSlots);
-    result.addProperty("total", totalSlots);
-    return result;
-  }
 
-  private JsonObject getRequestJSON(HttpServletRequest request) throws IOException {
-    JsonObject requestJSON = new JsonObject();
+    protected void process(final HttpServletRequest request, final HttpServletResponse response)
+            throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(200);
+        JsonObject res;
+        try {
+            res = getResponse(request);
+            response.getWriter().print(res);
+            response.getWriter().close();
+        } catch (JsonSyntaxException e) {
+            throw new GridException(e.getMessage());
+        }
 
-    try (BufferedReader rd = new BufferedReader(new InputStreamReader(request.getInputStream()))) {
-      StringBuilder s = new StringBuilder();
-      CharStreams.copy(rd, s);
-      String json = s.toString();
-      if (!"".equals(json)) {
-        requestJSON = new JsonParser().parse(json).getAsJsonObject();
-      }
     }
-    return requestJSON;
-  }
+
+    private JsonObject getResponse(final HttpServletRequest request) throws IOException {
+        JsonObject res = new JsonObject();
+        res.addProperty("success", true);
+        try {
+            if (request.getInputStream() != null) {
+                JsonObject requestJSON = getRequestJSON(request);
+                List<String> keysToReturn = null;
+
+                if (request.getParameter("configuration") != null && !"".equals(request.getParameter("configuration"))) {
+                    keysToReturn = Arrays.asList(request.getParameter("configuration").split(","));
+                } else if (requestJSON != null && requestJSON.has("configuration")) {
+                    keysToReturn = new Gson().fromJson(requestJSON.getAsJsonArray("configuration"), ArrayList.class);
+                }
+
+                Registry registry = getRegistry();
+                JsonElement config = registry.getConfiguration().toJson();
+                for (Map.Entry<String, JsonElement> entry : config.getAsJsonObject().entrySet()) {
+                    if (keysToReturn == null || keysToReturn.isEmpty() || keysToReturn.contains(entry.getKey())) {
+                        res.add(entry.getKey(), entry.getValue());
+                    }
+                }
+                if (keysToReturn == null || keysToReturn.isEmpty() || keysToReturn.contains("newSessionRequestCount")) {
+                    res.addProperty("newSessionRequestCount", registry.getNewSessionRequestCount());
+                }
+
+                if (keysToReturn == null || keysToReturn.isEmpty() || keysToReturn.contains("slotCounts")) {
+                    res.add("slotCounts", getSlotCounts());
+                }
+                if (keysToReturn == null || keysToReturn.isEmpty() || keysToReturn.contains("browserSlotsCount")) {
+                    res.add("browserSlotsCount", getBrowserSlotsCount());
+                }
+            }
+        } catch (Exception e) {
+            res.remove("success");
+            res.addProperty("success", false);
+            res.addProperty("msg", e.getMessage());
+        }
+        return res;
+
+    }
+
+    private JsonObject getSlotCounts() {
+        int freeSlots = 0;
+        int totalSlots = 0;
+
+        for (RemoteProxy proxy : getRegistry().getAllProxies()) {
+            for (TestSlot slot : proxy.getTestSlots()) {
+                if (slot.getSession() == null) {
+                    freeSlots += 1;
+                }
+
+                totalSlots += 1;
+            }
+        }
+
+        JsonObject result = new JsonObject();
+
+        result.addProperty("free", freeSlots);
+        result.addProperty("total", totalSlots);
+
+        return result;
+    }
+
+    private JsonObject getBrowserSlotsCount() {
+        int freeSlots = 0;
+        int totalSlots = 0;
+
+        Map<String, Integer> freeBrowserSlots = new HashMap<>();
+        Map<String, Integer> totalBrowserSlots = new HashMap<>();
+
+        for (RemoteProxy proxy : getRegistry().getAllProxies()) {
+            for (TestSlot slot : proxy.getTestSlots()) {
+                String slot_browser_name = slot.getCapabilities().get(CapabilityType.BROWSER_NAME).toString().toUpperCase();
+                if (slot.getSession() == null) {
+                    if (freeBrowserSlots.containsKey(slot_browser_name)) {
+                        freeBrowserSlots.put(slot_browser_name, freeBrowserSlots.get(slot_browser_name) + 1);
+                    } else {
+                        freeBrowserSlots.put(slot_browser_name, 1);
+                    }
+                    freeSlots += 1;
+                }
+                if (totalBrowserSlots.containsKey(slot_browser_name)) {
+                    totalBrowserSlots.put(slot_browser_name, totalBrowserSlots.get(slot_browser_name) + 1);
+                } else {
+                    totalBrowserSlots.put(slot_browser_name, 1);
+                }
+                totalSlots += 1;
+            }
+        }
+
+        JsonObject result = new JsonObject();
+
+        for (String str : totalBrowserSlots.keySet()) {
+            JsonObject browser = new JsonObject();
+            browser.addProperty("total", totalBrowserSlots.get(str));
+            if (freeBrowserSlots.containsKey(str)) {
+                browser.addProperty("free", freeBrowserSlots.get(str));
+            } else {
+                browser.addProperty("free", 0);
+            }
+            result.add(str, browser);
+        }
+
+        result.addProperty("total", totalSlots);
+        result.addProperty("total_free", freeSlots);
+        return result;
+    }
+
+    private JsonObject getRequestJSON(final HttpServletRequest request) throws IOException {
+        JsonObject requestJSON = null;
+        BufferedReader rd = new BufferedReader(new InputStreamReader(request.getInputStream()));
+        StringBuilder s = new StringBuilder();
+        String line;
+        while ((line = rd.readLine()) != null) {
+            s.append(line);
+        }
+        rd.close();
+        String json = s.toString();
+        if (!"".equals(json)) {
+            requestJSON = new JsonParser().parse(json).getAsJsonObject();
+        }
+        return requestJSON;
+    }
 }
